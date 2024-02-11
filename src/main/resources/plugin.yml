@@ -1,0 +1,18 @@
+name: BackPackLimit
+version: '${project.version}'
+main: com.backpacklimit.Main
+api-version: '1.16'
+load: STARTUP
+authors: [FILIZES]
+depend:
+  - PlaceholderAPI
+commands:
+  playerbackpacklimit:
+    description: Поставить слоты
+    aliases: [ bplimit, setbplimit ]  # Optional aliases for convenience
+  playerbackpacklimit1:
+    description: Добавить 1 слот
+  playerbackpacklimitremove:
+    description: Удалить сколько угодно слотов
+  backpacklimitinfo:
+    description: Узнать слоты
