@@ -1,6 +1,6 @@
 package com.backpacklimit;
 
-import com.backpacklimit.Commands.CommandManager;
+import com.backpacklimit.Commands.*;
 import com.backpacklimit.DatabaseManager.DatabaseManager;
 import com.backpacklimit.Placeholder.PlaceholderAPIExpansion;
 import com.backpacklimit.Player.PlayerManager;
@@ -20,6 +20,7 @@ public final class Main extends JavaPlugin implements Listener {
         reloadConfig();
 
 
+
         databaseManager = new DatabaseManager(this);
         databaseManager.connect();
 
@@ -27,10 +28,10 @@ public final class Main extends JavaPlugin implements Listener {
 
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(playerManager, this);
-        getCommand("playerbackpacklimit").setExecutor(new CommandManager(databaseManager));
-        getCommand("playerbackpacklimit1").setExecutor(new CommandManager(databaseManager));
-        getCommand("playerbackpacklimitremove").setExecutor(new CommandManager(databaseManager));
-        getCommand("backpacklimitinfo").setExecutor(new CommandManager(databaseManager));
+        getCommand("playerbackpacklimit").setExecutor(new SetBackPackLimit(databaseManager));
+        getCommand("playerbackpacklimit1").setExecutor(new AddBackPackLimit(databaseManager));
+        getCommand("playerbackpacklimitremove").setExecutor(new RemoveBackPack(databaseManager));
+        getCommand("backpacklimitinfo").setExecutor(new BackPackLimitInfo(databaseManager));
     }
 
     @Override
@@ -39,7 +40,7 @@ public final class Main extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPluginEnable(PluginEnableEvent event) {
+    public void onpluginenable(PluginEnableEvent event) {
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new PlaceholderAPIExpansion(this).register();
         }
