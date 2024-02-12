@@ -9,7 +9,7 @@ depend:
 commands:
   playerbackpacklimit:
     description: Поставить слоты
-    aliases: [ bplimit, setbplimit ]  # Optional aliases for convenience
+    aliases: [ bplimit, setbplimit ] 
   playerbackpacklimit1:
     description: Добавить 1 слот
   playerbackpacklimitremove:
