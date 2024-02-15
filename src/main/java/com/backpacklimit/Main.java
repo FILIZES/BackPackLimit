@@ -4,6 +4,7 @@ import com.backpacklimit.Commands.*;
 import com.backpacklimit.DatabaseManager.DatabaseManager;
 import com.backpacklimit.Placeholder.PlaceholderAPIExpansion;
 import com.backpacklimit.Player.PlayerManager;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
@@ -32,6 +33,7 @@ public final class Main extends JavaPlugin implements Listener {
         getCommand("playerbackpacklimit1").setExecutor(new AddBackPackLimit(databaseManager));
         getCommand("playerbackpacklimitremove").setExecutor(new RemoveBackPack(databaseManager));
         getCommand("backpacklimitinfo").setExecutor(new BackPackLimitInfo(databaseManager));
+
     }
 
     @Override
@@ -40,8 +42,8 @@ public final class Main extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onpluginenable(PluginEnableEvent event) {
-        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+    public void onPluginEnable(PluginEnableEvent event) {
+        if (event.getPlugin().getName().equals("PlaceholderAPI")) {
             new PlaceholderAPIExpansion(this).register();
         }
     }
@@ -49,4 +51,5 @@ public final class Main extends JavaPlugin implements Listener {
     public DatabaseManager DatabaseManager() {
         return databaseManager;
     }
+
 }
