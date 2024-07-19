@@ -1,0 +1,20 @@
+name: BackPackLimit
+version: '${project.version}'
+main: com.filizes.backpacklimit.Main
+api-version: '1.13'
+load: STARTUP
+authors: [FILIZES]
+softdepend: [PlaceholderAPI]
+commands:
+  playerbackpacklimitset:
+    description: Поставить слоты
+    aliases: [ bplimit, setbplimit ]
+  playerbackpacklimitadd:
+    description: Добавить сколько угодно слотов
+    aliases: [ pbadd]
+  playerbackpacklimitremove:
+    description: Удалить сколько угодно слотов
+    aliases: [ pbremove ]
+  playerbackpacklimitinfo:
+    description: Узнать слоты
+    aliases: [ pbinfo ]
