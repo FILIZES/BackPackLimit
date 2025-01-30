@@ -1,6 +1,7 @@
 package com.filizes.backpacklimit.config;
 
 import com.filizes.backpacklimit.Main;
+import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
@@ -10,6 +11,7 @@ import java.io.IOException;
 
 public class MessagesConfig implements Listener {
     private final Main plugin;
+    @Getter
     private FileConfiguration messagesConfig;
     private File messagesFile;
 
@@ -26,10 +28,6 @@ public class MessagesConfig implements Listener {
         }
 
         messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
-    }
-
-    public FileConfiguration getMessagesConfig() {
-        return messagesConfig;
     }
 
     public void saveMessagesConfig() {

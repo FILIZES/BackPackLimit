@@ -6,15 +6,6 @@ load: STARTUP
 authors: [FILIZES]
 softdepend: [PlaceholderAPI]
 commands:
-  playerbackpacklimitset:
-    description: Поставить слоты
-    aliases: [ bplimit, setbplimit ]
-  playerbackpacklimitadd:
-    description: Добавить сколько угодно слотов
-    aliases: [ pbadd]
-  playerbackpacklimitremove:
-    description: Удалить сколько угодно слотов
-    aliases: [ pbremove ]
-  playerbackpacklimitinfo:
-    description: Узнать слоты
-    aliases: [ pbinfo ]
+  backpacklimit:
+    description: Всеобщая команда для управления
+    aliases: [ bplimit, setbplimit, pbadd, pbremove, pbinfo ]
