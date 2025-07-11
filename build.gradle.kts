@@ -59,6 +59,7 @@ tasks.shadowJar {
 
     relocate("dev.rollczi.litecommands", "${project.group}.backpacklimit.libs.litecommands")
     relocate("com.google.inject", "${project.group}.backpacklimit.libs.guice")
+    relocate("com.google.common", "${project.group}.backpacklimit.libs.google.common")
     relocate("javax.inject", "${project.group}.backpacklimit.libs.javaxinject")
     relocate("aopalliance", "${project.group}.backpacklimit.libs.aopalliance")
     relocate("com.zaxxer.hikari", "${project.group}.backpacklimit.libs.hikari")

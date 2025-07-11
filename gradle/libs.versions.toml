@@ -11,7 +11,7 @@ caffeine = "3.2.1"
 litecommands-bukkit = "3.9.7"
 junit = "5.13.3"
 mockito = "5.18.0"
-shadow = "8.1.1"
+shadow = "9.0.0-rc1"
 
 [libraries]
 paper-api = { group = "com.destroystokyo.paper", name = "paper-api", version.ref = "paper-api" }
@@ -32,5 +32,5 @@ junit = { group = "org.junit.jupiter", name = "junit-jupiter" }
 mockito = { group = "org.mockito", name = "mockito-junit-jupiter" }
 
 [plugins]
-shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 
