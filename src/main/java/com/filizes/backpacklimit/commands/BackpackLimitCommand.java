@@ -1,138 +1,132 @@
 package com.filizes.backpacklimit.commands;
 
-import com.filizes.backpacklimit.config.Messages;
-import com.filizes.backpacklimit.databasemanager.interfaces.DatabaseManager;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
+import com.filizes.backpacklimit.Main;
+import com.filizes.backpacklimit.config.service.MessageService;
+import com.filizes.backpacklimit.config.settings.LimitSettings;
+import com.filizes.backpacklimit.database.interfaces.DatabaseManager;
+import com.filizes.backpacklimit.listener.service.InventoryLimitService;
+import com.google.inject.Inject;
+import dev.rollczi.litecommands.annotations.argument.Arg;
+import dev.rollczi.litecommands.annotations.command.Command;
+import dev.rollczi.litecommands.annotations.context.Context;
+import dev.rollczi.litecommands.annotations.execute.Execute;
+import dev.rollczi.litecommands.annotations.permission.Permission;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 
-public class BackpackLimitCommand implements CommandExecutor {
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
+@Slf4j
+@RequiredArgsConstructor(onConstructor_ = @Inject)
+@Command(name = "backpacklimit", aliases = "bpl")
+public final class BackpackLimitCommand {
+
+    private final Main plugin;
     private final DatabaseManager databaseManager;
+    private final MessageService messageService;
+    private final InventoryLimitService limitService;
 
-    public BackpackLimitCommand(DatabaseManager databaseManager) {
-        this.databaseManager = databaseManager;
+    private String getPlayerName(OfflinePlayer player) {
+        return Optional.ofNullable(player.getName()).orElse(player.getUniqueId().toString());
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (!sender.hasPermission("backpacklimit.use")) {
-            sender.sendMessage(ChatColor.RED + "У вас нет разрешения на выполнение этой команды.");
-            return true;
-        }
-
-        if (args.length < 1) {
-            sender.sendMessage(ChatColor.RED + "Используй: /backpacklimit <info|set|add|remove> [<player> <amount>]");
-            return true;
-        }
-
-        String action = args[0].toLowerCase();
-
-        switch (action) {
-            case "info":
-                return handleInfoCommand(sender, args);
-            case "set":
-                return handleSetCommand(sender, args);
-            case "add":
-                return handleAddCommand(sender, args);
-            case "remove":
-                return handleRemoveCommand(sender, args);
-            default:
-                sender.sendMessage(ChatColor.RED + "Неизвестное действие. Используй: /backpacklimit <info|set|add|remove>");
-                return true;
-        }
+    @Execute(name = "info")
+    @Permission("backpacklimit.info")
+    public void info(@Context CommandSender sender, @Arg("player") OfflinePlayer player) {
+        String playerName = getPlayerName(player);
+        databaseManager.getPlayerBackpackLimit(player.getUniqueId())
+                .thenAccept(limit -> messageService.sendMessage(sender, "current_limit", Map.of(
+                        "{player}", playerName,
+                        "{limit}", String.valueOf(limit)
+                )))
+                .exceptionally(handleFailure(sender, playerName));
     }
 
-    private boolean handleInfoCommand(CommandSender sender, String[] args) {
-        if (args.length != 2 || !sender.hasPermission("backpacklimit.info")) {
-            sender.sendMessage(ChatColor.RED + "Используй: /backpacklimit info <player>");
-            return true;
+    @Execute(name = "set")
+    @Permission("backpacklimit.set")
+    public void set(@Context CommandSender sender, @Arg("player") OfflinePlayer player, @Arg("amount") int amount) {
+        if (amount < 0) {
+            messageService.sendMessage(sender, "amount_must_be_positive_or_zero");
+            return;
         }
-
-        String targetPlayerName = args[1];
-        int playerBackpackLimit = databaseManager.getPlayerBackpackLimit(targetPlayerName);
-        String message = Messages.DB_CURRENT_LIMIT.replace("{player}", targetPlayerName).replace("{limit}", String.valueOf(playerBackpackLimit));
-        sender.sendMessage(message);
-        return true;
+        executeUpdate(sender, player,
+                () -> databaseManager.setPlayerBackpackLimit(player, amount),
+                "set_limit", Map.of("{limit}", String.valueOf(amount))
+        );
     }
 
-    private boolean handleSetCommand(CommandSender sender, String[] args) {
-        if (args.length != 3 || !sender.hasPermission("backpacklimit.set")) {
-            sender.sendMessage(ChatColor.RED + "Используй: /backpacklimit set <player> <amount>");
-            return true;
+    @Execute(name = "add")
+    @Permission("backpacklimit.add")
+    public void add(@Context CommandSender sender, @Arg("player") OfflinePlayer player, @Arg("amount") int amount) {
+        if (amount <= 0) {
+            messageService.sendMessage(sender, "amount_must_be_positive");
+            return;
         }
-
-        String targetPlayerName = args[1];
-        int newBackpackLimit;
-
-        try {
-            newBackpackLimit = Integer.parseInt(args[2]);
-            if (newBackpackLimit <= 0) {
-                sender.sendMessage(ChatColor.RED + "Сумма должна быть больше нуля.");
-                return true;
-            }
-        } catch (NumberFormatException e) {
-            sender.sendMessage(ChatColor.RED + "Количество должно быть в цифрах.");
-            return true;
-        }
-
-        databaseManager.updatePlayerBackpackLimit(targetPlayerName, newBackpackLimit);
-        String message = Messages.DB_SET_LIMIT.replace("{player}", targetPlayerName).replace("{limit}", String.valueOf(newBackpackLimit));
-        sender.sendMessage(message);
-        return true;
+        executeUpdate(sender, player,
+                () -> databaseManager.addPlayerBackpackLimit(player, amount),
+                "increase_limit", Map.of("{amount}", String.valueOf(amount))
+        );
     }
 
-    private boolean handleAddCommand(CommandSender sender, String[] args) {
-        if (args.length != 3 || !sender.hasPermission("backpacklimit.add")) {
-            sender.sendMessage(ChatColor.RED + "Используй: /backpacklimit add <player> <amount>");
-            return true;
+    @Execute(name = "remove")
+    @Permission("backpacklimit.remove")
+    public void remove(@Context CommandSender sender, @Arg("player") OfflinePlayer player, @Arg("amount") int amount) {
+        if (amount <= 0) {
+            messageService.sendMessage(sender, "amount_must_be_positive");
+            return;
         }
-
-        String targetPlayerName = args[1];
-        int amount;
-
-        try {
-            amount = Integer.parseInt(args[2]);
-            if (amount <= 0) {
-                sender.sendMessage(ChatColor.RED + "Сумма должна быть больше нуля.");
-                return true;
-            }
-        } catch (NumberFormatException e) {
-            sender.sendMessage(ChatColor.RED + "Количество должно быть в цифрах.");
-            return true;
-        }
-
-        databaseManager.increasePlayerBackpackLimit(targetPlayerName, amount);
-        String message = Messages.DB_INCREASE_LIMIT.replace("{player}", targetPlayerName).replace("{amount}", String.valueOf(amount));
-        sender.sendMessage(message);
-        return true;
+        executeUpdate(sender, player,
+                () -> databaseManager.removePlayerBackpackLimit(player, amount),
+                "decrease_limit", Map.of("{amount}", String.valueOf(amount))
+        );
     }
 
-    private boolean handleRemoveCommand(CommandSender sender, String[] args) {
-        if (args.length != 3 || !sender.hasPermission("backpacklimit.remove")) {
-            sender.sendMessage(ChatColor.RED + "Используй: /backpacklimit remove <player> <amount>");
-            return true;
-        }
+    private void executeUpdate(CommandSender sender, OfflinePlayer player, Supplier<CompletableFuture<Void>> dbOperation, String messageKey, Map<String, String> placeholders) {
+        String playerName = getPlayerName(player);
+        dbOperation.get()
+                .thenCompose(v -> databaseManager.getPlayerBackpackLimit(player.getUniqueId()))
+                .thenAccept(newLimit -> handleLimitUpdateSuccess(sender, player, messageKey, newLimit, placeholders))
+                .exceptionally(handleFailure(sender, playerName));
+    }
 
-        String targetPlayerName = args[1];
-        int removeBackpackLimit;
+    private void handleLimitUpdateSuccess(CommandSender sender, OfflinePlayer player, String messageKey, int newLimit, Map<String, String> placeholders) {
+        Map<String, String> finalPlaceholders = new java.util.HashMap<>(placeholders);
+        finalPlaceholders.put("{player}", getPlayerName(player));
 
-        try {
-            removeBackpackLimit = Integer.parseInt(args[2]);
-            if (removeBackpackLimit <= 0) {
-                sender.sendMessage(ChatColor.RED + "Сумма должна быть больше нуля.");
-                return true;
-            }
-        } catch (NumberFormatException e) {
-            sender.sendMessage(ChatColor.RED + "Количество должно быть в цифрах.");
-            return true;
-        }
+        messageService.sendMessage(sender, messageKey, finalPlaceholders);
+        limitService.updatePlayerLimitInCache(player.getUniqueId(), newLimit);
 
-        databaseManager.decreasePlayerBackpackLimit(targetPlayerName, removeBackpackLimit);
-        String message = Messages.DB_DECREASE_LIMIT.replace("{player}", targetPlayerName).replace("{amount}", String.valueOf(removeBackpackLimit));
-        sender.sendMessage(message);
-        return true;
+        Optional.ofNullable(player.getPlayer()).ifPresent(limitService::checkAndCorrectInventoryAsync);
+    }
+
+    private Function<Throwable, Void> handleFailure(CommandSender sender, String playerName) {
+        return ex -> {
+            messageService.sendMessage(sender, "error_modifying_limit", Map.of("{player}", playerName));
+            return null;
+        };
+    }
+
+    @Execute(name = "reload")
+    @Permission("backpacklimit.reload")
+    public void reload(@Context CommandSender sender) {
+        plugin.reloadConfig();
+        messageService.reloadMessages();
+        FileConfiguration newConfig = plugin.getConfig();
+        LimitSettings newLimitSettings = new LimitSettings(
+                newConfig.getInt("limit-settings.default-backpack-limit", 8),
+                newConfig.getBoolean("limit-settings.ignore-armor-and-offhand", true)
+        );
+
+        limitService.reload(newLimitSettings);
+
+        messageService.sendMessage(sender, "reload_success");
     }
 
 }

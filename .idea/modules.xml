@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/BackPackLimit.iml" filepath="$PROJECT_DIR$/BackPackLimit.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/BackPackLimit.iml" filepath="$PROJECT_DIR$/.idea/BackPackLimit.iml" />
     </modules>
   </component>
 </project>

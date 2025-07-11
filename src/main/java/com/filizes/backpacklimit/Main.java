@@ -1,64 +1,33 @@
 package com.filizes.backpacklimit;
 
-import com.filizes.backpacklimit.commands.BackpackLimitCommand;
-import com.filizes.backpacklimit.config.Messages;
-import com.filizes.backpacklimit.databasemanager.DatabaseManagerImpl;
-import com.filizes.backpacklimit.databasemanager.enums.DatabaseTables;
-import com.filizes.backpacklimit.databasemanager.interfaces.DatabaseManager;
-import com.filizes.backpacklimit.placeholder.PlaceholderAPIExpansion;
-import com.filizes.backpacklimit.player.PlayerManager;
-import com.filizes.backpacklimit.config.MessagesConfig;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.server.PluginEnableEvent;
+import com.filizes.backpacklimit.config.service.MessageService;
+import com.filizes.backpacklimit.listener.service.InventoryLimitService;
+import com.filizes.backpacklimit.loader.PluginLoader;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class Main extends JavaPlugin implements Listener {
+@Slf4j
+public final class Main extends JavaPlugin {
 
-    private DatabaseManager databaseManager;
-    private MessagesConfig messagesConfig;
+    private PluginLoader loader;
 
     @Override
     public void onEnable() {
-
-        AutoUpdater autoUpdater = new AutoUpdater(this);
-        autoUpdater.checkForUpdates();
-
-        messagesConfig = new MessagesConfig(this);
-        Messages.loadMessages(messagesConfig.getMessagesConfig());
-
-        DatabaseTables.initialize(getConfig());
-
-        saveDefaultConfig();
-        reloadConfig();
-
-        databaseManager = new DatabaseManagerImpl(this);
-        databaseManager.connect();
-
-        PlayerManager playerManager = new PlayerManager(this, databaseManager);
-
-        getServer().getPluginManager().registerEvents(this,this);
-        getServer().getPluginManager().registerEvents(playerManager, this);
-        getServer().getPluginManager().registerEvents(messagesConfig,this);
-        getServer().getPluginManager().registerEvents(autoUpdater,this);
-        getCommand("backpacklimit").setExecutor(new BackpackLimitCommand(databaseManager));
+        try {
+            this.loader = new PluginLoader(this, getFile());
+            this.loader.load();
+        } catch (Exception e) {
+            e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
+        }
     }
 
     @Override
     public void onDisable() {
-        databaseManager.disconnect();
-        messagesConfig.saveMessagesConfig();
-    }
-
-    @EventHandler
-    public void onPluginEnable(PluginEnableEvent event) {
-        if (event.getPlugin().getName().equals("PlaceholderAPI")) {
-            new PlaceholderAPIExpansion(this).register();
+        if (this.loader != null) {
+            this.loader.getInjector().getInstance(MessageService.class);
+            this.loader.getInjector().getInstance(InventoryLimitService.class);
+            this.loader.unload();
         }
     }
-
-    public DatabaseManager DatabaseManager() {
-        return databaseManager;
-    }
-
 }
