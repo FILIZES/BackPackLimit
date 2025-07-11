@@ -39,8 +39,11 @@ public final class PluginModule extends AbstractModule {
         bind(BackpackLimitCommand.class).in(Singleton.class);
         bind(OfflinePlayerArgumentResolver.class).in(Singleton.class);
         bind(CustomInvalidUsageHandler.class).in(Singleton.class);
-        bind(PapiListener.class).in(Singleton.class);
         bind(PlayerListener.class).in(Singleton.class);
+
+        if (plugin.getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            bind(PapiListener.class).in(Singleton.class);
+        }
     }
 
     @Provides @Singleton public FileConfiguration provideConfig() {

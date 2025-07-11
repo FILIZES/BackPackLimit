@@ -224,6 +224,10 @@
                             <pattern>okio</pattern>
                             <shadedPattern>${project.groupId}.${project.artifactId}.libs.okio</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>com.google.common</pattern>
+                            <shadedPattern>${project.groupId}.${project.artifactId}.libs.guava</shadedPattern>
+                        </relocation>
                     </relocations>
                     <filters>
                         <filter>
