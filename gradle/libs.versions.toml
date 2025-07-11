@@ -1,0 +1,35 @@
+[versions]
+paper-api = "1.16.5-R0.1-SNAPSHOT"
+hikari-cp = "6.3.0"
+placeholder-api = "2.11.6"
+lombok = "1.18.36"
+guava = "33.4.0-jre"
+okhttp = "5.0.0-alpha.14"
+sqlite-jdbc = "3.50.2.0"
+guice = "7.0.0"
+caffeine = "3.2.1"
+litecommands-bukkit = "3.9.7"
+junit = "5.13.3"
+mockito = "5.18.0"
+shadow = "9.0.0-rc1"
+
+[libraries]
+paper-api = { group = "com.destroystokyo.paper", name = "paper-api", version.ref = "paper-api" }
+hikari = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikari-cp" }
+placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholder-api" }
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+sqlite = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite-jdbc" }
+guice = { group = "com.google.inject", name = "guice", version.ref = "guice" }
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
+litecommands = { group = "dev.rollczi", name = "litecommands-bukkit", version.ref = "litecommands-bukkit" }
+
+junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
+
+junit = { group = "org.junit.jupiter", name = "junit-jupiter" }
+mockito = { group = "org.mockito", name = "mockito-junit-jupiter" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
